@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<head>
+    <title>Movimientos</title>
+</head>
+
+<body>
+
+<th:block layout:fragment="page-title">Historial de Movimientos</th:block>
+
+<div layout:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <h5 class="page-title-text">
+                <i class="bi bi-arrow-left-right me-2 text-primary"></i>Movimientos
+            </h5>
+            <p class="page-sub">Historial completo de entradas y salidas</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a th:href="@{/reports/movimientos/excel}" class="btn-outline-report">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </a>
+        </div>
+    </div>
+
+    <div class="filter-bar mb-3">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="buscadorMov"
+                   placeholder="Buscar herramienta o usuario..."
+                   oninput="filtrarMovimientos()"/>
+        </div>
+        <select id="filtroTipo" class="form-select filter-select"
+                onchange="filtrarMovimientos()">
+            <option value="">Todos los tipos</option>
+            <option value="ENTRADA">ENTRADA</option>
+            <option value="SALIDA">SALIDA</option>
+        </select>
+    </div>
+
+   
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-4">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="bi bi-arrow-left-right"></i>
+                </div>
+                <div>
+                    <div class="stat-value" th:text="${movimientos.size()}">0</div>
+                    <div class="stat-label">Total Movimientos</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-4">
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="bi bi-arrow-down-circle"></i>
+                </div>
+                <div>
+                  
+                    <div class="stat-value" th:text="${totalEntradas}">0</div>
+                    <div class="stat-label">Total Entradas</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-4">
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <i class="bi bi-arrow-up-circle"></i>
+                </div>
+                <div>
+                    
+                    <div class="stat-value" th:text="${totalSalidas}">0</div>
+                    <div class="stat-label">Total Salidas</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-card-header">
+            <span class="table-card-title">
+                <i class="bi bi-list-ul me-2"></i>
+                Registro de Movimientos
+                <span class="badge bg-primary ms-2"
+                      th:text="${movimientos.size()}">0</span>
+            </span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Herramienta</th>
+                        <th>Usuario</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Motivo</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyMovimientos">
+                    <tr th:each="m, i : ${movimientos}">
+                        <td th:text="${i.count}">1</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="tool-icon-sm">
+                                    <i class="bi bi-wrench"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-600"
+                                         th:text="${m.herramienta.nombre}">-</div>
+                                    <div class="text-muted small"
+                                         th:text="${m.herramienta.codigo}">-</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-circle"
+                                     th:classappend="${m.usuario.rol == 'ADMIN'} ? 'avatar-admin' : 'avatar-user'">
+                                    <span th:text="${#strings.substring(m.usuario.nombre,0,1).toUpperCase()}">A</span>
+                                </div>
+                                <span th:text="${m.usuario.nombre}">-</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge-estado mov-badge"
+                                  th:classappend="${m.tipo == 'ENTRADA'} ? 'badge-entrada' : 'badge-salida'">
+                                <i class="bi"
+                                   th:classappend="${m.tipo == 'ENTRADA'} ? 'bi-arrow-down-circle' : 'bi-arrow-up-circle'"></i>
+                                <span th:text="${m.tipo}">-</span>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="cantidad-badge"
+                                  th:classappend="${m.tipo == 'ENTRADA'} ? 'cantidad-entrada' : 'cantidad-salida'"
+                                  th:text="${m.tipo == 'ENTRADA'} ? '+' + ${m.cantidad} : '-' + ${m.cantidad}">
+                                0
+                            </span>
+                        </td>
+                        <td th:text="${m.motivo != null ? m.motivo : '-'}">-</td>
+                        <td>
+                            <div class="fecha-cell">
+                                <span th:text="${#temporals.format(m.fecha, 'dd/MM/yyyy')}">-</span>
+                                <span class="text-muted small"
+                                      th:text="${#temporals.format(m.fecha, 'HH:mm')}">-</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(movimientos)}">
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            No hay movimientos registrados
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/movimientos.js}"></script>
+</th:block>
+
+</body>
+</html>

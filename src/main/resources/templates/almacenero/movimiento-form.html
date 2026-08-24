@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{almacenero/layout}">
+
+<head>
+    <title>Registrar Movimiento</title>
+</head>
+
+<body>
+
+<th:block layout:fragment="page-title">
+    <i class="bi bi-plus-circle me-2"></i>Registrar Movimiento
+</th:block>
+
+<div layout:fragment="content">
+
+    <div class="row g-3 justify-content-center">
+        <div class="col-12 col-lg-8">
+
+            
+            <div class="alm-form-card">
+
+                <div class="mov-form-header">
+                    <div class="mov-form-icon">
+                        <i class="bi bi-arrow-left-right"></i>
+                    </div>
+                    <div>
+                        <h5 class="mov-form-title">Nuevo Movimiento</h5>
+                        <p class="mov-form-sub">
+                            Registra una entrada o salida de herramienta
+                        </p>
+                    </div>
+                </div>
+
+                <hr class="mov-divider"/>
+
+                <form th:action="@{/almacenero/movimientos/registrar}"
+                      method="post" id="formMovimiento">
+
+                    <div class="row g-3">
+
+                        
+                        <div class="col-12">
+                            <label class="form-label">
+                                <i class="bi bi-wrench me-1"></i>
+                                Herramienta *
+                            </label>
+                            <select class="form-select"
+                                    name="herramienta.id"
+                                    id="selectHerramienta"
+                                    onchange="actualizarInfo()"
+                                    required>
+                                <option value="">Selecciona una herramienta...</option>
+                                <option th:each="h : ${herramientas}"
+                                        th:value="${h.id}"
+                                        th:text="${h.nombre + ' — ' + h.codigo + ' (Stock: ' + h.stockActual + ')'}"
+                                        th:data-stock="${h.stockActual}"
+                                        th:data-estado="${h.estado}"
+                                        th:data-ubicacion="${h.ubicacion}"
+                                        th:selected="${param.herramientaId != null and param.herramientaId[0] == h.id.toString()}">
+                                </option>
+                            </select>
+                        </div>
+
+                        
+                        <div class="col-12" id="infoHerramienta"
+                             style="display:none;">
+                            <div class="alm-info-box">
+                                <div class="info-item">
+                                    <i class="bi bi-box-seam"></i>
+                                    <span>Stock actual:
+                                        <strong id="infoStock">-</strong>
+                                    </span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="bi bi-geo-alt"></i>
+                                    <span>Ubicación:
+                                        <strong id="infoUbicacion">-</strong>
+                                    </span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="bi bi-circle-fill"
+                                       id="infoEstadoIcon"></i>
+                                    <span>Estado:
+                                        <strong id="infoEstado">-</strong>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                      
+                        <div class="col-12">
+                            <label class="form-label">
+                                <i class="bi bi-arrow-left-right me-1"></i>
+                                Tipo de Movimiento *
+                            </label>
+                            <div class="tipo-selector">
+                                <label class="tipo-option" id="labelEntrada">
+                                    <input type="radio" name="tipo"
+                                           value="ENTRADA"
+                                           onchange="cambiarTipo('ENTRADA')"/>
+                                    <div class="tipo-card entrada">
+                                        <i class="bi bi-arrow-down-circle-fill"></i>
+                                        <span>ENTRADA</span>
+                                        <small>Agregar stock</small>
+                                    </div>
+                                </label>
+                                <label class="tipo-option" id="labelSalida">
+                                    <input type="radio" name="tipo"
+                                           value="SALIDA"
+                                           onchange="cambiarTipo('SALIDA')"/>
+                                    <div class="tipo-card salida">
+                                        <i class="bi bi-arrow-up-circle-fill"></i>
+                                        <span>SALIDA</span>
+                                        <small>Retirar stock</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                      
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="bi bi-123 me-1"></i>
+                                Cantidad *
+                            </label>
+                            <input type="number"
+                                   class="form-control"
+                                   name="cantidad"
+                                   id="inputCantidad"
+                                   min="1"
+                                   placeholder="Ingresa la cantidad"
+                                   required
+                                   oninput="validarCantidad()"/>
+                            <div class="form-text text-danger"
+                                 id="errorCantidad"
+                                 style="display:none;">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                Stock insuficiente
+                            </div>
+                        </div>
+
+                       
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="bi bi-chat-text me-1"></i>
+                                Motivo
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   name="motivo"
+                                   placeholder="Ej: Mantenimiento equipos, Obra N°12..."/>
+                        </div>
+
+                        
+                        <div class="col-12" id="previewMovimiento"
+                             style="display:none;">
+                            <div class="alm-preview-box">
+                                <div class="preview-header">
+                                    <i class="bi bi-eye me-1"></i>
+                                    Vista previa del movimiento
+                                </div>
+                                <div class="preview-body">
+                                    <div class="preview-item">
+                                        <span class="preview-label">Stock actual</span>
+                                        <span class="preview-val"
+                                              id="previewStockActual">-</span>
+                                    </div>
+                                    <div class="preview-arrow">
+                                        <i class="bi bi-arrow-right"></i>
+                                    </div>
+                                    <div class="preview-item">
+                                        <span class="preview-label">Stock después</span>
+                                        <span class="preview-val fw-700"
+                                              id="previewStockDespues">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    
+                    <div class="mov-form-actions">
+                        <a th:href="@{/almacenero/inventario}"
+                           class="alm-btn-outline">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit"
+                                class="alm-btn-primary"
+                                id="btnGuardar">
+                            <i class="bi bi-check-lg"></i> Registrar Movimiento
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/movimiento-form.js}"></script>
+</th:block>
+
+</body>
+</html>

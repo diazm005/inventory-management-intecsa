@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{almacenero/layout}">
+
+<head>
+    <title>Inicio</title>
+</head>
+
+<body>
+
+<th:block layout:fragment="page-title">
+    👋 Bienvenido, <span sec:authentication="name">Usuario</span>
+</th:block>
+
+<div layout:fragment="content">
+
+    
+    <div class="alm-banner">
+        <div class="alm-banner-text">
+            <h4>¡Hola, <span sec:authentication="name">Usuario</span>!</h4>
+            <p>Aquí tienes el resumen del almacén de hoy</p>
+        </div>
+        <div class="alm-banner-date">
+            <i class="bi bi-calendar3 me-1"></i>
+            <span id="fechaHoy"></span>
+        </div>
+        <div class="alm-banner-icon">
+            <i class="bi bi-box-seam"></i>
+        </div>
+    </div>
+
+    
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="alm-stat-card">
+                <div class="alm-stat-icon alm-icon-teal">
+                    <i class="bi bi-tools"></i>
+                </div>
+                <div>
+                    <div class="alm-stat-value"
+                         th:text="${herramientas.size()}">0</div>
+                    <div class="alm-stat-label">Total Herramientas</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="alm-stat-card">
+                <div class="alm-stat-icon alm-icon-green">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div>
+                    
+                    <div class="alm-stat-value"
+                         th:text="${disponibles}">0</div>
+                    <div class="alm-stat-label">Disponibles</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="alm-stat-card">
+                <div class="alm-stat-icon alm-icon-red">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div>
+                    <div class="alm-stat-value"
+                         th:text="${stockBajo.size()}">0</div>
+                    <div class="alm-stat-label">Stock Crítico</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="alm-stat-card">
+                <div class="alm-stat-icon alm-icon-yellow">
+                    <i class="bi bi-slash-circle"></i>
+                </div>
+                <div>
+                   
+                    <div class="alm-stat-value"
+                         th:text="${agotadas}">0</div>
+                    <div class="alm-stat-label">Agotadas</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    
+    <div class="row g-3 mb-4">
+
+        <div class="col-12">
+            <h6 class="section-label">
+                <i class="bi bi-lightning-charge me-1"></i>Acciones Rápidas
+            </h6>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <a th:href="@{/almacenero/movimientos/nuevo}" class="alm-quick-card">
+                <div class="alm-quick-icon teal">
+                    <i class="bi bi-plus-circle-fill"></i>
+                </div>
+                <span>Nuevo Movimiento</span>
+            </a>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <a th:href="@{/almacenero/inventario}" class="alm-quick-card">
+                <div class="alm-quick-icon blue">
+                    <i class="bi bi-box-seam-fill"></i>
+                </div>
+                <span>Ver Inventario</span>
+            </a>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <a th:href="@{/almacenero/movimientos}" class="alm-quick-card">
+                <div class="alm-quick-icon purple">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <span>Mi Historial</span>
+            </a>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <a th:href="@{/reports/herramientas/pdf}" class="alm-quick-card">
+                <div class="alm-quick-icon red">
+                    <i class="bi bi-file-earmark-pdf-fill"></i>
+                </div>
+                <span>Exportar PDF</span>
+            </a>
+        </div>
+
+    </div>
+
+    
+    <div class="row g-3">
+
+        <!-- Herramientas disponibles -->
+        <div class="col-12 col-xl-7">
+            <div class="alm-table-card">
+                <div class="alm-table-header">
+                    <span class="alm-table-title">
+                        <i class="bi bi-tools me-2 text-success"></i>
+                        Herramientas Disponibles
+                    </span>
+                    <a th:href="@{/almacenero/inventario}"
+                       class="alm-btn-outline"
+                       style="padding:.35rem .85rem;font-size:.82rem;">
+                        Ver todas <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Herramienta</th>
+                                <th>Categoría</th>
+                                <th>Stock</th>
+                                <th>Ubicación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                            <tr th:each="h : ${herramientasDisponibles}">
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="alm-tool-icon">
+                                            <i class="bi bi-wrench"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-600 small"
+                                                 th:text="${h.nombre}">-</div>
+                                            <span class="alm-codigo"
+                                                  th:text="${h.codigo}">-</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="small" th:text="${h.categoria}">-</td>
+                                <td>
+                                    <span class="fw-700"
+                                          th:text="${h.stockActual}"
+                                          th:classappend="${h.stockActual <= h.stockMinimo} ? 'text-danger' : 'text-success'">
+                                        0
+                                    </span>
+                                </td>
+                                <td class="small text-muted"
+                                    th:text="${h.ubicacion}">-</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(herramientasDisponibles)}">
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    <i class="bi bi-inbox d-block mb-2"></i>
+                                    Sin herramientas disponibles
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="col-12 col-xl-5">
+            <div class="alm-table-card h-100">
+                <div class="alm-table-header">
+                    <span class="alm-table-title">
+                        <i class="bi bi-exclamation-triangle me-2 text-danger"></i>
+                        Stock Crítico
+                    </span>
+                </div>
+                <div class="p-3">
+
+                    <div th:if="${#lists.isEmpty(stockBajo)}"
+                         class="alm-empty-state">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <p>¡Todo el stock está en niveles normales!</p>
+                    </div>
+
+                    <div th:each="h : ${stockBajo}" class="alm-critico-item">
+                        <div class="alm-tool-icon">
+                            <i class="bi bi-wrench"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-600 small" th:text="${h.nombre}">-</div>
+                            <div class="alm-stock-bar-wrap">
+                                <div class="alm-stock-bar-fill"
+                                     th:style="'width:' + ${h.stockActual > 0 ? (h.stockActual * 100 / (h.stockMinimo + 5)) : 0} + '%'">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="fw-700 text-danger"
+                                  th:text="${h.stockActual}">0</span>
+                            <span class="text-muted small">/</span>
+                            <span class="text-muted small"
+                                  th:text="${h.stockMinimo}">0</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/dashboard-alm.js}"></script>
+</th:block>
+
+</body>
+</html>

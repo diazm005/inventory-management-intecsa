@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{almacenero/layout}">
+
+<head>
+    <title>Inventario</title>
+</head>
+
+<body>
+
+<th:block layout:fragment="page-title">
+    <i class="bi bi-box-seam me-2"></i>Inventario de Herramientas
+</th:block>
+
+<div layout:fragment="content">
+
+    
+    <div class="row g-2 mb-3">
+        <div class="col-12 col-md-5">
+            <div class="alm-search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" id="buscadorInv"
+                       placeholder="Buscar por nombre o código..."
+                       oninput="filtrarInventario()"/>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <select id="filtroCateg" class="form-select"
+                    onchange="filtrarInventario()">
+                <option value="">Todas las categorías</option>
+                <option>Llaves</option>
+                <option>Percusión</option>
+                <option>Alicates</option>
+                <option>Manual</option>
+                <option>Medición</option>
+                <option>Eléctrico</option>
+                <option>Corte</option>
+                <option>Herramientas Especiales</option>
+                <option>Izaje</option>
+                <option>Transporte</option>
+                <option>Limpieza</option>
+                <option>EPP</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-3">
+            <select id="filtroEst" class="form-select"
+                    onchange="filtrarInventario()">
+                <option value="">Todos los estados</option>
+                <option value="DISPONIBLE">DISPONIBLE</option>
+                <option value="AGOTADO">AGOTADO</option>
+                <option value="MANTENIMIENTO">MANTENIMIENTO</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-1 d-flex align-items-center">
+            <button class="alm-btn-outline w-100"
+                    onclick="limpiarFiltros()" title="Limpiar filtros">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    
+    <div class="alm-table-card">
+        <div class="alm-table-header">
+            <span class="alm-table-title">
+                <i class="bi bi-list-ul me-2"></i>
+                Herramientas
+                <span class="badge ms-2"
+                      style="background:#f0fdfa;color:#0f766e;"
+                      th:text="${herramientas.size()}">0</span>
+            </span>
+            <div class="d-flex gap-2">
+                <a th:href="@{/reports/herramientas/pdf}"
+                   class="alm-btn-outline"
+                   style="padding:.35rem .85rem;font-size:.82rem;">
+                    <i class="bi bi-file-earmark-pdf"></i> PDF
+                </a>
+                <a th:href="@{/almacenero/movimientos/nuevo}"
+                   class="alm-btn-primary"
+                   style="padding:.35rem .85rem;font-size:.82rem;">
+                    <i class="bi bi-plus-lg"></i> Nuevo Movimiento
+                </a>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Herramienta</th>
+                        <th>Categoría</th>
+                        <th>Stock</th>
+                        <th>Estado</th>
+                        <th>Ubicación</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyInv">
+                    <tr th:each="h, i : ${herramientas}">
+                        <td class="text-muted small"
+                            th:text="${i.count}">1</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="alm-tool-icon">
+                                    <i class="bi bi-wrench"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-600"
+                                         th:text="${h.nombre}">-</div>
+                                    <span class="alm-codigo"
+                                          th:text="${h.codigo}">-</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="alm-categ-chip"
+                                  th:text="${h.categoria}">-</span>
+                        </td>
+                        <td>
+                            <div class="alm-stock-info"
+                                 th:classappend="${h.stockActual <= h.stockMinimo} ? 'stock-warn' : ''">
+                                <span class="alm-stock-num"
+                                      th:text="${h.stockActual}">0</span>
+                                <span class="alm-stock-min">
+                                    mín. <span th:text="${h.stockMinimo}">0</span>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="alm-badge"
+                                  th:classappend="${h.estado == 'DISPONIBLE'} ? 'alm-badge-disponible' :
+                                                  (${h.estado == 'AGOTADO'} ? 'alm-badge-agotado' : 'alm-badge-mantenimiento')"
+                                  th:text="${h.estado}">-</span>
+                        </td>
+                        <td class="text-muted small"
+                            th:text="${h.ubicacion != null ? h.ubicacion : '-'}">-</td>
+                        <td>
+                            <a th:href="@{/almacenero/movimientos/nuevo(herramientaId=${h.id})}"
+                               class="alm-btn-primary"
+                               style="padding:.3rem .75rem;font-size:.8rem;"
+                               th:classappend="${h.estado == 'AGOTADO'} ? 'disabled' : ''"
+                               title="Registrar movimiento">
+                                <i class="bi bi-plus-lg"></i> Mover
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(herramientas)}">
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            No hay herramientas registradas
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/inventario-alm.js}"></script>
+</th:block>
+
+</body>
+</html>

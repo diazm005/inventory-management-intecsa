@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<head>
+    <title>Usuarios</title>
+</head>
+
+<body>
+
+<th:block layout:fragment="page-title">Gestión de Usuarios</th:block>
+
+<div layout:fragment="content">
+
+    
+    <div class="page-header">
+        <div>
+            <h5 class="page-title-text">
+                <i class="bi bi-people me-2 text-primary"></i>Usuarios
+            </h5>
+            <p class="page-sub">Administra los accesos al sistema</p>
+        </div>
+        <button class="btn-primary-custom" data-bs-toggle="modal"
+                data-bs-target="#modalUsuario" onclick="limpiarModalUsuario()">
+            <i class="bi bi-person-plus"></i> Nuevo Usuario
+        </button>
+    </div>
+
+    
+    <div class="table-card">
+        <div class="table-card-header">
+            <span class="table-card-title">
+                <i class="bi bi-list-ul me-2"></i>
+                Lista de Usuarios
+                <span class="badge bg-primary ms-2" th:text="${usuarios.size()}">0</span>
+            </span>
+            <div class="search-box" style="width: 250px;">
+                <i class="bi bi-search"></i>
+                <input type="text" id="buscadorUsuario"
+                       placeholder="Buscar usuario..."
+                       oninput="filtrarUsuarios()"/>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover" id="tablaUsuarios">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Usuario</th>
+                        <th>Nombre Completo</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyUsuarios">
+                    <tr th:each="u, i : ${usuarios}">
+                        <td th:text="${i.count}">1</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-circle"
+                                     th:classappend="${u.rol == 'ADMIN'} ? 'avatar-admin' : 'avatar-user'">
+                                    <span th:text="${#strings.substring(u.nombre, 0, 1).toUpperCase()}">A</span>
+                                </div>
+                                <div>
+                                    <div class="fw-600" th:text="${u.username}">-</div>
+                                    <div class="text-muted small">@<span th:text="${u.username}">-</span></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td th:text="${u.nombre}">-</td>
+                        <td>
+                            <span class="badge-estado"
+                                  th:classappend="${u.rol == 'ADMIN'} ? 'badge-admin' : 'badge-user'"
+                                  th:text="${u.rol}">-</span>
+                        </td>
+                        <td>
+                            <div class="estado-toggle">
+                                <div class="estado-dot"
+                                     th:classappend="${u.activo} ? 'dot-active' : 'dot-inactive'">
+                                </div>
+                                <span th:text="${u.activo} ? 'Activo' : 'Inactivo'"
+                                      th:classappend="${u.activo} ? 'text-success' : 'text-danger'"
+                                      class="fw-500">-</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a class="btn-icon btn-icon-edit btn-editar-usuario"
+                                title="Editar"
+                                th:data-id="${u.id}"
+                                th:data-username="${u.username}"
+                                th:data-nombre="${u.nombre}"
+                                th:data-rol="${u.rol}">
+                                <i class="bi bi-pencil"></i>
+                                </a>
+                                <a class="btn-icon"
+                                   title="Activar/Desactivar"
+                                   th:href="@{/admin/usuarios/toggle/{id}(id=${u.id})}"
+                                   th:classappend="${u.activo} ? 'btn-icon-warning' : 'btn-icon-success'">
+                                    <i class="bi"
+                                       th:classappend="${u.activo} ? 'bi-toggle-on' : 'bi-toggle-off'"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(usuarios)}">
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-people fs-2 d-block mb-2"></i>
+                            No hay usuarios registrados
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    
+    <div class="modal fade" id="modalUsuario" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-custom">
+
+                <div class="modal-header-custom">
+                    <h5 class="modal-title-custom" id="modalTituloUsuario">
+                        <i class="bi bi-person-plus me-2"></i>Nuevo Usuario
+                    </h5>
+                    <button type="button" class="btn-close-custom"
+                            data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <form th:action="@{/admin/usuarios/guardar}" method="post">
+                    <input type="hidden" id="uId" name="id"/>
+
+                    <div class="modal-body-custom">
+                        <div class="row g-3">
+
+                            <div class="col-12">
+                                <label class="form-label">Nombre Completo *</label>
+                                <input type="text" class="form-control"
+                                       id="uNombre" name="nombre"
+                                       placeholder="Ej: Carlos" required/>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Username *</label>
+                                <div class="input-icon-wrap">
+                                    <i class="bi bi-at"></i>
+                                    <input type="text" class="form-control input-with-icon"
+                                           id="uUsername" name="username"
+                                           placeholder="carlosGarcia" required/>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Rol *</label>
+                                <select class="form-select" id="uRol" name="rol" required>
+                                    <option value="USER">Almacenero</option>
+                                    <option value="ADMIN">Administrador</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">
+                                    Contraseña *
+                                    <span class="text-muted small" id="passHint">
+                                        (dejar vacío para no cambiar)
+                                    </span>
+                                </label>
+                                <div class="input-icon-wrap">
+                                    <i class="bi bi-lock"></i>
+                                    <input type="password"
+                                           class="form-control input-with-icon"
+                                           id="uPassword" name="password"
+                                           placeholder="Minimo 6 caracteres"/>
+                                    <button type="button" class="btn-toggle-pass-modal"
+                                            onclick="togglePassModal()">
+                                        <i class="bi bi-eye" id="eyeIconModal"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="modal-footer-custom">
+                        <button type="button" class="btn-cancel"
+                                data-bs-dismiss="modal">
+                            <i class="bi bi-x me-1"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn-primary-custom">
+                            <i class="bi bi-check-lg me-1"></i>Guardar
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/usuarios.js}"></script>
+</th:block>
+
+</body>
+</html>
